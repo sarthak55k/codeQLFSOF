@@ -31,6 +31,7 @@ const sessionOptions = {
     resave: false,
     saveUninitialized: false,
     cookie: {
+        secure: true,
         httpOnly: true,
         sameSite: true,
         maxAge: 86400000,

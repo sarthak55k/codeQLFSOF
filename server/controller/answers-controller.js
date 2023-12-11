@@ -2,7 +2,12 @@ const answerDao = require("../dao/answers-dao.js");
 const questionDao = require("../dao/questions-dao.js")
 const commentDao = require("../dao/comments-dao.js")
 const ResponseClass = require('../service/response-service.js')
+const rateLimit = require("express-rate-limit");
 
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // limit each IP to 100 requests per windowMs
+});
 
 const findAnswers  = async (req, res) => {
     const answers = await answerDao.findAnswers();
@@ -175,6 +180,16 @@ const updateLastActive = async (aId) => {
 }
 
 module.exports = (app) => {
+    app.use('/api/answer/allAnswers', limiter);
+    app.use('/api/answer/:aid', limiter);
+    app.use('/api/answer/voteUp/:aid', limiter);
+    app.use('/api/answer/voteDown/:aid', limiter);
+    app.use('/api/answer/getAnswersByQuestionId/:qid', limiter);
+    app.use('/api/answer/saveAnswer', limiter);
+    app.use('/api/answer/updateAnswer/:aid', limiter);
+    app.use('/api/answer/deleteAnswer/:aid', limiter);
+    app.use('/api/answer/addComment/:aid/:cid', limiter);
+
     app.get('/api/answer/allAnswers', findAnswers);
     app.get('/api/answer/:aid', findAnswerById);
     app.get('/api/answer/voteUp/:aid', voteUp);

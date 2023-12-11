@@ -2,6 +2,12 @@ const commentDao = require('../dao/comments-dao.js')
 const ResponseClass = require('../service/response-service.js')
 const answerDao = require("../dao/answers-dao");
 const questionDao = require("../dao/questions-dao");
+const rateLimit = require("express-rate-limit");
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // limit each IP to 100 requests per windowMs
+});
 
 const findComments  = async (req, res) => {
     const tags = await commentDao.findComments();
@@ -49,7 +55,7 @@ const voteUp = async (req, res) => {
                 comment.votes += 1;
                 comment.voteUp.push(currentUser._id);
                 const status = await commentDao.updateComment(cid,
-                        comment);
+                    comment);
                 await updateLastActive(cid);
                 res.json(new ResponseClass(200, status));
             } else {
@@ -122,6 +128,14 @@ const updateLastActive = async (cId) => {
 }
 
 module.exports = (app) => {
+    app.use('/api/comment/allComments', limiter);
+    app.use('/api/comment/createComment', limiter);
+    app.use('/api/comment/getComments/:uid', limiter);
+    app.use('/api/comment/getCommentsById/:cid', limiter);
+    app.use('/api/comment/upvote/:cid', limiter);
+    app.use('/api/comment/deleteCommentFromQuestion/:cid/:qid', limiter)
+    app.use('/api/comment/deleteCommentFromAnswer/:cid/:aid', limiter)
+
     app.get('/api/comment/allComments', findComments);
     app.post('/api/comment/createComment', createComment);
     app.get('/api/comment/getComments/:uid', findCommentsByUserId);

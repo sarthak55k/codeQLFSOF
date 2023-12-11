@@ -3,7 +3,12 @@ const userDao = require('../dao/users-dao.js')
 const bcryptFunctions = require('../service/password-encryption-service.js');
 const ResponseClass = require('../service/response-service.js')
 const sortService = require("../service/question-sort-service");
+const rateLimit = require("express-rate-limit");
 
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // limit each IP to 100 requests per windowMs
+});
 const findUsers  = async (req, res) => {
     try {
         const users = await userDao.findUsers();
@@ -150,7 +155,6 @@ const loginUser = async (req, res) => {
                     if (err) {
                         reject(err);
                     } else {
-                        console.log(isMatch);
                         resolve(isMatch);
                     }
                 });
@@ -281,6 +285,22 @@ const getAllTagsByUser = async (req, res) => {
     }
 }
 module.exports = (app) => {
+    app.use('/api/user/allUsers', limiter);
+    app.use('/api/user/userById/:uid', limiter);
+    app.use('/api/user/userByUsername/:username', limiter);
+    app.use('/api/user/userByEmail/:email', limiter);
+    app.use('/api/user/login', limiter);
+    app.use('/api/user/register', limiter);
+    app.use('/api/user/updateUser', limiter);
+    app.use('/api/user/deleteUser/:tid', limiter);
+    app.use('/api/user/increaseReputation/:uid', limiter);
+    app.use('/api/user/decreaseReputation/:uid', limiter);
+    app.use('/api/user/getAccountDetails', limiter)
+    app.use('/api/user/logout', limiter)
+    app.use('/api/user/getAllQuestionsByUser/:sortType', limiter)
+    app.use('/api/user/getAllAnswersByUser', limiter)
+    app.use('/api/user/getAllTagsByUser', limiter)
+
     app.get('/api/user/allUsers', findUsers);
     app.get('/api/user/userById/:uid', findUserById);
     app.get('/api/user/userByUsername/:username', findUserByUsername);

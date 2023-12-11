@@ -1,7 +1,12 @@
 const tagDao = require('../dao/tags-dao.js')
 const questionDao = require('../dao/questions-dao.js')
 const ResponseClass = require('../service/response-service.js')
+const rateLimit = require("express-rate-limit");
 
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // limit each IP to 100 requests per windowMs
+});
 const findTags  = async (req, res) => {
     const tags = await tagDao.findTags();
     res.json(new ResponseClass(200, tags));
@@ -90,6 +95,13 @@ const deleteTag = async (req, res) => {
 }
 
 module.exports = (app) => {
+    app.use('/api/tag/allTags', limiter);
+    app.use('/api/tag/:tid', limiter);
+    app.use('/api/tag/getTagByName/:name', limiter);
+    app.use('/api/tag/saveTag', limiter);
+    app.use('/api/tag/updateTag/:tid', limiter);
+    app.use('/api/tag/deleteTag/:tid', limiter);
+
     app.get('/api/tag/allTags', findTags);
     app.get('/api/tag/:tid', findTagById);
     app.get('/api/tag/getTagByName/:name', findTagByName);

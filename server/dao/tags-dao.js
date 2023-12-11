@@ -1,11 +1,19 @@
 const tagsModel = require('../models/tags-model.js');
+const sanitize = require('mongoose-sanitize');
 
 const findTags = () => tagsModel.find();
 const findTagById = (tid) => tagsModel.findById({_id: tid});
-const findTagByName = (name) => tagsModel.find({name: name})
+const findTagByName = (name) => {
+    const sanitizedName = sanitize(name);
+    tagsModel.find({name: sanitizedName})
+}
 const createTag = (tag) => tagsModel.create(tag);
 const deleteTag = (tid) => tagsModel.deleteOne({_id: tid});
-const updateTag = (tid, tag) => tagsModel.updateOne({_id: tid}, {$set: tag})
+const updateTag = (tid, tag) => {
+    const sanitizedId = sanitize(tid);
+    const sanitizedTag = sanitize(tag);
+    tagsModel.updateOne({_id: sanitizedId}, {$set: sanitizedTag})
+}
 
 const tagCreate = async (tag) => {
     const newTagName = tag.name;
@@ -30,5 +38,3 @@ module.exports = {
     updateTag,
     tagCreate
 };
-
-

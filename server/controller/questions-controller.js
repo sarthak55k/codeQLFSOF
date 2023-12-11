@@ -4,6 +4,12 @@ const sortService = require("../service/question-sort-service");
 const ResponseClass = require('../service/response-service.js');
 const answerDao = require('../dao/answers-dao.js')
 const commentDao = require('../dao/comments-dao.js')
+const rateLimit = require("express-rate-limit");
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // limit each IP to 100 requests per windowMs
+});
 
 const findQuestions  = async (req, res) => {
     const sortType = req.params.sortType;
@@ -34,7 +40,7 @@ const saveQuestion = async (req, res) => {
             }
             const createdTagId = await tagDao.tagCreate(tag);
             if (createdTagId !== '') {
-                    tagIds.push(createdTagId);
+                tagIds.push(createdTagId);
             }
         }
         newQuestion.tags = tagIds;
@@ -232,6 +238,19 @@ const pinAnAnswer = async (req, res) => {
 }
 
 module.exports = (app) => {
+    app.use('/api/question/allQuestions/:sortType', limiter);
+    app.use('/api/question/:qid', limiter);
+    app.use('/api/question/voteUp/:qid', limiter);
+    app.use('/api/question/voteDown/:qid', limiter);
+    app.use('/api/question/addComment/:qid/:cid', limiter);
+    app.use('/api/question/addAnswerId/:aid/:qid', limiter);
+    app.use('/api/question/saveQuestion', limiter);
+    app.use('/api/question/updateQuestion/:qid', limiter);
+    app.use('/api/question/updateQuestionView/:qid', limiter);
+    app.use('/api/question/deleteQuestion/:qid', limiter);
+    app.use('/api/question/getQuestionDetailById/:qid', limiter)
+    app.use('/api/question/pinnedAnswer/:qid/:aid', limiter)
+
     app.get('/api/question/allQuestions/:sortType', findQuestions);
     app.get('/api/question/:qid', findQuestionById);
     app.get('/api/question/voteUp/:qid', voteUp);

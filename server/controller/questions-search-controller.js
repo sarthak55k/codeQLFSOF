@@ -1,6 +1,12 @@
 const questionDao = require("../dao/questions-dao.js");
 const tagDao = require("../dao/tags-dao.js")
 const sortService = require("../service/question-sort-service.js")
+const rateLimit = require("express-rate-limit");
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // limit each IP to 100 requests per windowMs
+});
 
 const getFilteredQuestions = async (req, res) => {
     const filterParams = req.body
@@ -61,6 +67,8 @@ const getFilteredQuestionsByTag = async (req, res) => {
 }
 
 module.exports = (app) => {
+    app.use('/api/question/getFilteredQuestions/:sortType', limiter);
+    app.use('/api/question/getFilteredQuestionsByTag/:sortType', limiter);
     app.post('/api/question/getFilteredQuestions/:sortType', getFilteredQuestions);
     app.post('/api/question/getFilteredQuestionsByTag/:sortType', getFilteredQuestionsByTag);
 };
