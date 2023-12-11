@@ -1,0 +1,23 @@
+.welcome-container {
+    text-align: center;
+    margin: 50px;
+}
+
+.action-button {
+    background-color: lightsteelblue;
+    border-color: lightsteelblue;
+    color: #212529;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.action-button:hover {
+    background-color: lightblue;
+}
